@@ -1,6 +1,8 @@
 #pragma once
+#include <set>
 #include "Common.h"
 #include "DebugDashboard.h"
+#include "Framework/Application/IInputProcessor.h"
 
 namespace dbg
 {
@@ -9,19 +11,51 @@ namespace dbg
 		class var;
 	}
 
-	class DebugDashboardSlate: public DebugDashboard
+	namespace slate
 	{
-	public:
-		DebugDashboardSlate();
-		~DebugDashboardSlate();
 
-	private:
-		void Initialize();
-		
-		void OnVarRegistered(std::reference_wrapper<detail::var> i_var);
-		void OnVarUnregistered(std::reference_wrapper<detail::var> i_var);
+		class DebugDashboardSlate : public DebugDashboard, public SCompoundWidget, public IInputProcessor
+		{
+		public:
+			SLATE_BEGIN_ARGS(DebugDashboardSlate) {}
+			SLATE_END_ARGS();
 
-		boost::signals2::scoped_connection m_onVarRegisteredConnection;
-		boost::signals2::scoped_connection m_onVarUnregisteredConnection;
-	};
+			static FSlateFontInfo s_textStyle;
+
+			void Construct(const FArguments& i_inArgs);
+			DebugDashboardSlate();
+			~DebugDashboardSlate();
+
+			void Tick(float DeltaTime);
+			bool SupportsKeyboardFocus() const override;
+
+			//Not to be changed, just by Module itself
+			TWeakPtr<SOverlay> m_parent;
+
+		private:
+			void Initialize();
+
+			void OnVarRegistered(std::reference_wrapper<detail::var> i_var);
+			void OnVarUnregistered(std::reference_wrapper<detail::var> i_var);
+
+			bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override;
+			bool HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override { return m_isVisible; }
+
+			TSharedRef<ITableRow> OnGenerateListRow(TSharedPtr<SWidget> Item, const TSharedRef<STableViewBase>& OwnerTable);
+			void OnGetChildren(TSharedPtr<SWidget> Item, TArray<TSharedPtr<SWidget>>& OutChildren);
+
+			void Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor) override;
+			bool m_isVisible = false;
+			boost::signals2::scoped_connection m_onVarRegisteredConnection;
+			boost::signals2::scoped_connection m_onVarUnregisteredConnection;
+
+			TSharedPtr< SVerticalBox> m_widgetContainer;
+			TSharedPtr< STreeView<TSharedPtr<SWidget>>> m_treeView;
+			TArray<TSharedPtr<SWidget>> m_treeNodes;
+			TMap<TSharedPtr<SWidget>, TSortedMap<FString, TSharedPtr<SWidget>>> m_streeStructure;
+			std::map<std::string, TSharedRef<SWidget>> m_widgetByPath;
+			//std::vector<std::weak_ptr<DebugWidgetEx>> m_activeWidgets;
+			TSet<TSharedRef<DebugSlateWidget>> m_allDebugOptions;
+		};
+	}
 }

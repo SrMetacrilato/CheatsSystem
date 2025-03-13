@@ -11,7 +11,7 @@ namespace dbg
 
 	signal dbg::make_signal(std::filesystem::path i_path)
 	{
-		return signal();
+		return signal(std::move(i_path));
 	}
 
 	struct connection::data
@@ -31,8 +31,9 @@ namespace dbg
 	{
 	}
 
-	dbg::signal::signal()
-		: m_data(std::make_unique<data>())
+	dbg::signal::signal(std::filesystem::path i_name)
+		: var(std::move(i_name))
+		, m_data(std::make_unique<data>())
 	{
 	}
 

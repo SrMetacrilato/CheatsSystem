@@ -38,7 +38,8 @@ public class CheatsSystem : ModuleRules
 				"Engine",
 				"Slate",
 				"SlateCore",
-				"Boost"
+				"Boost",
+				"InputCore"
 				// ... add private dependencies that you statically link with here ...	
 			}
 			);

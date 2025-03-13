@@ -16,17 +16,19 @@ namespace dbg
 	template<>
 	struct properties<bool>
 	{
-		//properties(const properties<bool>& other) = default;
+		
 	};
 
-	template<typename T>
-	class var;
+	//FWD declarations
+	template<typename T> class var;
+	namespace detail { class var; }
 	
-	template<typename T>
-	dbg::var<T> make_var(T initialValue, std::filesystem::path i_name, properties<T> i_properties);
+	template<typename T> dbg::var<T> make_var(T initialValue, std::filesystem::path i_name, properties<T> i_properties);
+	template<typename T> T value(const dbg::var<T>&);
+	template<typename T> void set_value(dbg::var<T>&, T i_value);
+	template<typename T> properties<T> get_properties(const dbg::var<T>&);
 
-	template<typename T>
-	auto value(const dbg::var<T>&);
+	CHEATSSYSTEM_API std::filesystem::path get_path(const detail::var&);
 
 	
 	namespace detail
@@ -38,10 +40,12 @@ namespace dbg
 			
 
 		protected:
-			var();
+			var(std::filesystem::path i_path);
 
 		private:
-			//Widget creation functions
+			friend CHEATSSYSTEM_API std::filesystem::path dbg::get_path(const detail::var&);
+
+			std::filesystem::path m_path;
 			
 		};
 	}
@@ -60,16 +64,20 @@ namespace dbg
 
 	private:
 		friend dbg::var<T> make_var<T>(T initialValue, std::filesystem::path i_name, properties<T> i_properties);
-		friend auto value(const dbg::var<T>&);
+		friend T dbg::value(const dbg::var<T>&);
+		friend void dbg::set_value(dbg::var<T>&, T i_value);
+		friend properties<T> dbg::get_properties(const dbg::var<T>&);
+		
 
 		inline var(T initialValue, std::filesystem::path i_name, properties<T> i_properties)
-			: m_currentValue(std::move(initialValue))
+			: detail::var(std::move(i_name))
+			, m_currentValue(std::move(initialValue))
 			, m_properties(std::move(i_properties))
 		{
 			
 		}
 
-		inline T value() const
+		inline T get() const
 		{
 			return m_currentValue;
 		}
@@ -105,11 +113,24 @@ namespace dbg
 	}
 
 	template<typename T>
-	inline auto value(const dbg::var<T>& i_var)
+	inline T value(const dbg::var<T>& i_var)
 	{
-		return i_var.value();
+		return i_var.get();
+	}
+
+	template<typename T>
+	inline void set_value(dbg::var<T>& i_var, T i_value)
+	{
+		i_var.set(std::move(i_value));
+	}
+
+	template<typename T>
+	inline properties<T> get_properties(const dbg::var<T>& i_var)
+	{
+		return i_var.m_properties;
 	}
 
 
 	//template class CHEATSSYSTEM_API var<bool>;
+	//template class CHEATSSYSTEM_API var<float>;
 }

@@ -36,7 +36,7 @@ namespace dbg
 		friend CHEATSSYSTEM_API signal make_signal(std::filesystem::path i_path);
 		friend CHEATSSYSTEM_API connection connect(const signal& i_signal, std::function<void()> i_callback);
 
-		signal();
+		signal(std::filesystem::path i_name);
 
 
 		//////////////////////////////////////////////////////////////////////////////

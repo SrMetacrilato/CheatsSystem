@@ -5,19 +5,34 @@ namespace dbg
 	template<typename T>
 	class var;
 	class signal;
-	class DebugWidget;
+	
+	class CHEATSSYSTEM_API DebugSlateWidget
+	{
+	public:
+		
+		virtual ~DebugSlateWidget() = default;
 
-	CHEATSSYSTEM_API std::unique_ptr<DebugWidget> make_slate_widget_impl(const var<bool>& i_var);
-	CHEATSSYSTEM_API std::unique_ptr<DebugWidget> make_slate_widget_impl(const var<float>& i_var);
-	CHEATSSYSTEM_API std::unique_ptr<DebugWidget> make_slate_widget_impl(const signal& i_var);
+		//Required by some UI systems, such as Unreal's Slate. Will be called once, immediately after construction, and never again.
+		//afterwards, widget will be accessed.
+		virtual TSharedRef<SWidget> Init() = 0;
+
+	};
+
+
 
 	namespace slate
 	{
+		
+		
+		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(var<bool>& i_var);
+		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(var<float>& i_var);
+		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(signal& i_var);
+
 		class slate_capable
 		{
 		public:
 			virtual ~slate_capable() = default;
-			virtual std::unique_ptr<DebugWidget> make_slate_widget() = 0;
+			virtual TSharedRef<DebugSlateWidget> make_slate_widget() = 0;
 		};
 
 		template<typename VarT>
@@ -27,9 +42,9 @@ namespace dbg
 			//Widget creation functions
 			//////////////////////////////////////////////////////////////////////////////
 
-			inline std::unique_ptr<DebugWidget> make_slate_widget()
+			inline TSharedRef<DebugSlateWidget> make_slate_widget()
 			{
-				return make_slate_widget_impl(*static_cast<VarT*>(this));
+				return slate::make_widget(*static_cast<VarT*>(this));
 			}
 		};
 	}
