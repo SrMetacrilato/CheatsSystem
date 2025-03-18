@@ -5,6 +5,8 @@
 
 namespace dbg
 {
+	struct KeyShortcut;
+
 	namespace detail
 	{
 		class var;
@@ -26,6 +28,8 @@ namespace dbg
 		boost::signals2::signal<void(detail::var& i_var)> onVarUnregistered;
 
 		std::vector<std::reference_wrapper<detail::var>> ListAllVars() const;
+
+		void HandleKeyPress(const KeyShortcut& i_shortcut);
 
 	private:
 

@@ -1,12 +1,15 @@
 #pragma once
 #include "DebugVar.h"
+#include "KeyShortcut.h"
+
 namespace dbg
 {
 	class signal;
 	class connection;
 	
+	
 
-	CHEATSSYSTEM_API signal make_signal(std::filesystem::path i_path);
+	CHEATSSYSTEM_API signal make_signal(std::filesystem::path i_path, std::optional<KeyShortcut> i_shortcut = std::nullopt);
 	CHEATSSYSTEM_API connection connect(const signal& i_signal, std::function<void()> i_callback);
 	CHEATSSYSTEM_API void broadcast(const signal& i_signal);
 
@@ -29,6 +32,8 @@ namespace dbg
 		std::unique_ptr<data> m_data;
 	};
 
+	
+
 
 	#pragma warning( push )
 	#pragma warning( disable : 4250) //Domination here is acceptable. signal will NEVER implement the function
@@ -39,12 +44,15 @@ namespace dbg
 		~signal();
 
 	private:
-		friend CHEATSSYSTEM_API signal make_signal(std::filesystem::path i_path);
+		friend CHEATSSYSTEM_API signal make_signal(std::filesystem::path i_path, std::optional<KeyShortcut> i_shortcut);
 		friend CHEATSSYSTEM_API connection connect(const signal& i_signal, std::function<void()> i_callback);
 		friend CHEATSSYSTEM_API void dbg::broadcast(const signal& i_signal);
 
-		signal(std::filesystem::path i_name);
+		signal(std::filesystem::path i_name, std::optional<KeyShortcut> i_shortcut);
 
+		bool HandlesShortcut(const KeyShortcut& i_shortcut) const override;
+		void Activate() override;
+		
 
 		//////////////////////////////////////////////////////////////////////////////
 		//Members

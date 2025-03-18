@@ -2,7 +2,7 @@
 #include "Widgets/SWidget.h"
 
 #include "DebugSystem.h"
-
+#include "KeyShortcut.h"
 #include "DebugVar.h"
 
 namespace dbg
@@ -158,6 +158,19 @@ namespace dbg
         {
         }
 
+        KeyShortcut Adapt(const FKeyEvent& InKeyEvent)
+        {
+            KeyShortcut shortcut;
+            shortcut.altDown = InKeyEvent.IsAltDown();
+            FString name = InKeyEvent.GetKey().ToString();
+            if (name.Len() == 1)
+            {
+                wcstombs(&shortcut.key, &name[0], 1);
+            }
+            return shortcut;
+
+        }
+
         bool DebugDashboardSlate::HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
         {
             if (!GEngine->GameViewport)
@@ -227,6 +240,16 @@ namespace dbg
                 }
                 return true;
             }
+            else
+            {
+                KeyShortcut shortcut = Adapt(InKeyEvent);
+                if (shortcut.key != 0)
+                {
+                    DebugSystem::GetInstance().HandleKeyPress(shortcut);
+                }
+            }
+            
+
 
             //for (const TSharedRef<DebugOption>& debugOption : m_allDebugOptions)
             //{

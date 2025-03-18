@@ -1,4 +1,5 @@
 #include "DebugSystem.h"
+#include "DetailVar.h"
 
 namespace dbg
 {
@@ -41,5 +42,16 @@ namespace dbg
 	{
 		std::lock_guard guard(m_varListMutex);
 		return m_vars;
+	}
+
+	void DebugSystem::HandleKeyPress(const KeyShortcut& i_shortcut)
+	{
+		for (std::reference_wrapper<detail::var> var : m_vars)
+		{
+			if (var.get().HandlesShortcut(i_shortcut))
+			{
+				var.get().Activate();
+			}
+		}
 	}
 }

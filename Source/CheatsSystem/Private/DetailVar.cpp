@@ -1,6 +1,6 @@
 #include "DetailVar.h"
 #include "DebugSystem.h"
-
+#include "KeyShortcut.h"
 namespace dbg
 {
 	namespace detail
@@ -22,6 +22,8 @@ namespace dbg
 		{
 			m_data->onValueChanged();
 		}
+
+		
 
 		var::~var()
 		{

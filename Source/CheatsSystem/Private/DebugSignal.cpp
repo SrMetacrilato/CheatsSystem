@@ -6,12 +6,19 @@ namespace dbg
 {
 	struct signal::data
 	{
+		data(std::optional<KeyShortcut> i_shortcut)
+			: shortcut(std::move(i_shortcut))
+		{
+
+		}
+
 		boost::signals2::signal<void()> signal;
+		std::optional<KeyShortcut> shortcut;
 	};
 
-	signal dbg::make_signal(std::filesystem::path i_path)
+	signal dbg::make_signal(std::filesystem::path i_path, std::optional<KeyShortcut> i_shortcut)
 	{
-		return signal(std::move(i_path));
+		return signal(std::move(i_path), std::move(i_shortcut));
 	}
 
 	struct connection::data
@@ -37,10 +44,20 @@ namespace dbg
 	{
 	}
 
-	dbg::signal::signal(std::filesystem::path i_name)
+	dbg::signal::signal(std::filesystem::path i_name, std::optional<KeyShortcut> i_shortcut)
 		: var(std::move(i_name))
-		, m_data(std::make_unique<data>())
+		, m_data(std::make_unique<data>(std::move(i_shortcut)))
 	{
+	}
+
+	bool signal::HandlesShortcut(const KeyShortcut& i_shortcut) const
+	{
+		return m_data->shortcut != std::nullopt && *m_data->shortcut == i_shortcut;
+	}
+
+	void signal::Activate()
+	{
+		broadcast(*this);
 	}
 
 	connection::connection()

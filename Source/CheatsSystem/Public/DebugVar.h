@@ -4,7 +4,6 @@
 namespace dbg
 {
 	
-
 	
 
 	
@@ -61,6 +60,16 @@ namespace dbg
 				m_currentValue = std::move(i_value);
 				NotifyChanged();
 			}
+		}
+
+		inline bool HandlesShortcut(const KeyShortcut& i_shortcut) const override
+		{
+			return false;
+		}
+
+		inline void Activate() override
+		{
+
 		}
 		
 
