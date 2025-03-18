@@ -22,11 +22,14 @@ public:
 	bool IsTickable() const override;
 	TStatId GetStatId() const override;
 
-#if WITH_EDITOR
-	void StartPlayInEditorGameInstance();
-#endif
-
 private:
+
+	void OnBeginPIE(bool bIsSimulating);
+
+	void OnEndPIE(bool bIsSimulating);
+	
+
+
 	TSharedPtr<dbg::slate::DebugDashboardSlate> m_debugDashboard;
 	TSharedPtr<class SOverlay> m_menuWidgetContainer;
 };

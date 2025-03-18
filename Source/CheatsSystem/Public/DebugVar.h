@@ -4,6 +4,14 @@
 
 #include "SlateCapable.h"
 
+namespace boost
+{
+	namespace signals2
+	{
+		class scoped_connection;
+	}
+}
+
 namespace dbg
 {
 	
@@ -19,6 +27,21 @@ namespace dbg
 		
 	};
 
+	template<>
+	struct properties<float>
+	{
+		properties() = default;
+		properties(float i_min, float i_max)
+			: min(i_min)
+			, max(i_max)
+		{ }
+
+		float min = -999.f;
+		float max = 999.f;
+		int minFractionDigits = 2;
+		int maxFractionDigits = 2;
+	};
+
 	//FWD declarations
 	template<typename T> class var;
 	namespace detail { class var; }
@@ -28,7 +51,7 @@ namespace dbg
 	template<typename T> void set_value(dbg::var<T>&, T i_value);
 	template<typename T> properties<T> get_properties(const dbg::var<T>&);
 
-	CHEATSSYSTEM_API std::filesystem::path get_path(const detail::var&);
+	std::filesystem::path get_path(const detail::var&);
 
 	
 	namespace detail
@@ -36,17 +59,21 @@ namespace dbg
 		class CHEATSSYSTEM_API var: virtual public slate::slate_capable
 		{
 		public:
+
 			virtual ~var();
 			
 
 		protected:
 			var(std::filesystem::path i_path);
+			void NotifyChanged();
 
 		private:
-			friend CHEATSSYSTEM_API std::filesystem::path dbg::get_path(const detail::var&);
+			friend std::filesystem::path dbg::get_path(const detail::var&);
+			friend std::unique_ptr<boost::signals2::scoped_connection> connectOnValueChanged(const detail::var&, std::function<void()>); //unique_ptr so it is not dependant on boost
+			struct Data;
 
 			std::filesystem::path m_path;
-			
+			std::unique_ptr<Data> m_data;
 		};
 	}
 
@@ -84,7 +111,11 @@ namespace dbg
 
 		inline void set(T i_value)
 		{
-			m_currentValue = std::move(i_value);
+			if (m_currentValue != i_value)
+			{
+				m_currentValue = std::move(i_value);
+				NotifyChanged();
+			}
 		}
 		
 
@@ -109,7 +140,7 @@ namespace dbg
 	template<typename T, typename... Params>
 	inline dbg::var<T> make_var(T initialValue, std::filesystem::path i_name, Params... i_params)
 	{
-		return var<T>(std::move(initialValue), std::move(i_name), dbg::properties<T>(i_params));
+		return make_var<T>(std::move(initialValue), std::move(i_name), dbg::properties<T>(i_params...));
 	}
 
 	template<typename T>

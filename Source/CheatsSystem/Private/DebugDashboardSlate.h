@@ -32,6 +32,8 @@ namespace dbg
 			//Not to be changed, just by Module itself
 			TWeakPtr<SOverlay> m_parent;
 
+			bool IsVisible() const;
+
 		private:
 			void Initialize();
 
@@ -56,6 +58,19 @@ namespace dbg
 			std::map<std::string, TSharedRef<SWidget>> m_widgetByPath;
 			//std::vector<std::weak_ptr<DebugWidgetEx>> m_activeWidgets;
 			TSet<TSharedRef<DebugSlateWidget>> m_allDebugOptions;
+
+			struct InputState
+			{
+				EMouseLockMode lockMode;
+				bool ignoreInput;
+				bool hiddenDuringCapture;
+				EMouseCaptureMode captureMode;
+				TSharedPtr<SWidget> focus;
+				TSharedPtr<SWidget> keyboardFocus;
+				bool showMouseCursor;
+			};
+
+			InputState m_oldInputState;
 		};
 	}
 }

@@ -7,11 +7,15 @@
 
 void FCheatsSystemModule::StartupModule()
 {
-	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
+	FEditorDelegates::BeginPIE.AddRaw(this, &FCheatsSystemModule::OnBeginPIE);
+	FEditorDelegates::EndPIE.AddRaw(this, &FCheatsSystemModule::OnEndPIE);
 }
 
 void FCheatsSystemModule::ShutdownModule()
 {
+	FEditorDelegates::BeginPIE.RemoveAll(this);
+	FEditorDelegates::EndPIE.RemoveAll(this);
+
 	if (m_debugDashboard)
 	{
 		//FSlateApplication::Get().UnregisterInputPreProcessor(m_debugDashboard);
@@ -30,6 +34,10 @@ void FCheatsSystemModule::Tick(float DeltaTime)
 		GEngine->GameViewport->AddViewportWidgetContent(m_menuWidgetContainer.ToSharedRef(), 9999);
 		FSlateApplication::Get().RegisterInputPreProcessor(m_debugDashboard);
 	}
+	else if (GEngine && GEngine->GameViewport && m_debugDashboard)
+	{
+		GEngine->GameViewport->AddViewportWidgetContent(m_menuWidgetContainer.ToSharedRef(), 9999);
+	}
 }
 
 bool FCheatsSystemModule::IsTickable() const
@@ -42,7 +50,12 @@ TStatId FCheatsSystemModule::GetStatId() const
 	return TStatId();
 }
 
-void FCheatsSystemModule::StartPlayInEditorGameInstance()
+void FCheatsSystemModule::OnBeginPIE(bool bIsSimulating)
+{
+
+}
+
+void FCheatsSystemModule::OnEndPIE(bool bIsSimulating)
 {
 	if (m_debugDashboard)
 	{

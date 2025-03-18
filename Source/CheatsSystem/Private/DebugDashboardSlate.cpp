@@ -3,6 +3,8 @@
 #include "DebugVar.h"
 #include "DebugSignal.h"
 #include "Widgets/SWidget.h"
+#include "Widgets/Input/SSlider.h"
+#include "Widgets/Layout/SSpacer.h"
 
 namespace dbg
 {
@@ -28,11 +30,19 @@ namespace dbg
 
             void OnStateChanged(ECheckBoxState i_state) const
             {
+                boost::signals2::shared_connection_block block(*m_valueChangedConnection);
                 dbg::set_value(m_var.get(), i_state == ECheckBoxState::Checked);
+            }
+
+            void OnVariableValueChanged()
+            {
+                bool value = dbg::value(m_var.get());
+                checkbox->SetIsChecked(value);
             }
 
             TSharedRef<SWidget> Init() override
             {
+                m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetToggle::OnVariableValueChanged, this));
                 std::filesystem::path name = get_path(m_var.get());
                 bool value = dbg::value(m_var.get());
                 checkbox = SNew(SCheckBox).OnCheckStateChanged(this, &DebugSlateWidgetToggle::OnStateChanged)
@@ -45,28 +55,102 @@ namespace dbg
 
         private:
             
-
+            std::unique_ptr<boost::signals2::scoped_connection> m_valueChangedConnection;
             std::reference_wrapper<dbg::var<bool>> m_var;
             TSharedPtr<SCheckBox> checkbox;
+        };
+
+        class DebugSlateWidgetSliderInput : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetSliderInput>
+        {
+        public:
+            DebugSlateWidgetSliderInput(dbg::var<float>& i_var)
+                : m_var(i_var)
+            {
+
+            }
+
+            ~DebugSlateWidgetSliderInput()
+            {
+
+            }
+
+            void OnVariableValueChanged() const
+            {
+                float value = dbg::value(m_var.get());
+                valueText->SetText(FText::AsNumber(value, &format));
+                slider->SetValue(value);
+            }
+
+            TSharedRef<SWidget> Init() override
+            {
+                m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetSliderInput::OnVariableValueChanged, this));
+                std::filesystem::path name = get_path(m_var.get());
+                properties<float> properties = get_properties(m_var.get());
+                valueText = SNew(STextBlock).Font(DebugDashboardSlate::s_textStyle);
+                format.SetMinimumFractionalDigits(properties.minFractionDigits);
+                format.SetMaximumFractionalDigits(properties.maxFractionDigits);
+                float value = dbg::value(m_var.get());
+
+                slider = SNew(SSlider)
+                    .OnValueChanged_Lambda([this](float i_value) 
+                        { 
+                            boost::signals2::shared_connection_block block(*m_valueChangedConnection);
+                            dbg::set_value(m_var.get(), i_value);
+                            valueText->SetText(FText::AsNumber(i_value, &format));
+                        })
+                    .MinValue(properties.min)
+                    .MaxValue(properties.max)
+                    ;
+
+                slider->SetValue(value);
+                valueText->SetText(FText::AsNumber(value, &format));
+                
+                return SNew(SHorizontalBox)
+
+                    + SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(name.filename().c_str())).Font(DebugDashboardSlate::s_textStyle)]
+                    + SHorizontalBox::Slot().AutoWidth()[SNew(SSpacer)].MaxWidth(10.f)
+                    + SHorizontalBox::Slot().AutoWidth()[valueText.ToSharedRef()]
+                    + SHorizontalBox::Slot().AutoWidth()[SNew(SSpacer)].MaxWidth(10.f)
+                    + SHorizontalBox::Slot().FillWidth(1.0f)[slider.ToSharedRef()]
+                    ;
+            }
+
+        private:
+
+            FNumberFormattingOptions format;
+            std::reference_wrapper<dbg::var<float>> m_var;
+            std::unique_ptr<boost::signals2::scoped_connection> m_valueChangedConnection;
+            TSharedPtr<SSlider> slider;
+            TSharedPtr<STextBlock> valueText;
         };
 
         class DebugSlateWidgetButton : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetButton>
         {
         public:
+            DebugSlateWidgetButton(dbg::signal& i_var)
+                : m_var(i_var)
+            {
+
+            }
+
             TSharedRef<SWidget> Init() override
             {
-                return SNew(SButton);
+                std::filesystem::path name = get_path(m_var.get());
+                button = SNew(SButton).OnPressed_Lambda([this]() { 
+                    dbg::broadcast(m_var);
+                    })
+                    [
+                        SNew(STextBlock).Text(FText::FromString(name.filename().c_str())).Font(DebugDashboardSlate::s_textStyle)
+                    ];
+                return button.ToSharedRef();
             }
+
+        private:
+            TSharedPtr<SButton> button;
+            std::reference_wrapper<dbg::signal> m_var;
         };
 
-        class DebugSlateWidgetNumberInput : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetNumberInput>
-        {
-        public:
-            TSharedRef<SWidget> Init() override
-            {
-                return SNew(SButton);
-            }
-        };
+      
 
 
 
@@ -77,12 +161,12 @@ namespace dbg
 
         TSharedRef<DebugSlateWidget> make_widget(var<float>& i_var)
         {
-            return MakeShared<DebugSlateWidgetButton>();
+            return MakeShared<DebugSlateWidgetSliderInput>(i_var);
         }
 
         TSharedRef<DebugSlateWidget> make_widget(signal& i_var)
         {
-            return MakeShared<DebugSlateWidgetButton>();
+            return MakeShared<DebugSlateWidgetButton>(i_var);
         }
 
 
@@ -138,6 +222,11 @@ namespace dbg
         bool DebugDashboardSlate::SupportsKeyboardFocus() const
         {
             return true;
+        }
+
+        bool DebugDashboardSlate::IsVisible() const
+        {
+            return m_isVisible;
         }
 
         void DebugDashboardSlate::Initialize()
@@ -236,16 +325,57 @@ namespace dbg
                 if (m_parent.Pin()->GetChildren()->Num() > 0)
                 {
                     m_parent.Pin()->RemoveSlot(AsShared());
+
+                    UWorld* w = GEngine->GameViewport->GetWorld();
+                    if (w)
+                    {
+                        APlayerController* PC = w->GetFirstPlayerController();
+                        if (PC)
+                        {
+                            PC->bShowMouseCursor = m_oldInputState.showMouseCursor;
+                            //PC->SetInputMode(FInputModeUIOnly());
+                        }
+                    }
+
+                    GEngine->GameViewport->SetMouseLockMode(m_oldInputState.lockMode);
+                    GEngine->GameViewport->SetIgnoreInput(m_oldInputState.ignoreInput);
+                    GEngine->GameViewport->SetHideCursorDuringCapture(m_oldInputState.hiddenDuringCapture);
+                    GEngine->GameViewport->SetMouseCaptureMode(m_oldInputState.captureMode);
+                    FSlateApplication::Get().SetUserFocus(0, m_oldInputState.focus);
+                    FSlateApplication::Get().SetKeyboardFocus(m_oldInputState.keyboardFocus);
+
                     m_isVisible = false;
                     //FSlateApplication::Get().mouse(AsShared());
                 }
                 else
                 {
                     m_parent.Pin()->AddSlot()[AsShared()];
+
+                    m_oldInputState.lockMode = GEngine->GameViewport->GetMouseLockMode();
+                    m_oldInputState.ignoreInput = GEngine->GameViewport->IgnoreInput();
+                    m_oldInputState.hiddenDuringCapture = GEngine->GameViewport->HideCursorDuringCapture();
+                    m_oldInputState.captureMode = GEngine->GameViewport->GetMouseCaptureMode();
+                    m_oldInputState.focus = FSlateApplication::Get().GetUserFocusedWidget(0);
+                    m_oldInputState.keyboardFocus = FSlateApplication::Get().GetKeyboardFocusedWidget();
+                   
+                    UWorld* w = GEngine->GameViewport->GetWorld();
+                    if (w)
+                    {
+                        APlayerController* PC = w->GetFirstPlayerController();
+                        if (PC)
+                        {
+                            m_oldInputState.showMouseCursor = PC->bShowMouseCursor;
+                            PC->bShowMouseCursor = true;
+                        }
+                    }
+
                     GEngine->GameViewport->SetMouseLockMode(EMouseLockMode::LockOnCapture);
                     GEngine->GameViewport->SetIgnoreInput(false);
                     GEngine->GameViewport->SetHideCursorDuringCapture(false);
                     GEngine->GameViewport->SetMouseCaptureMode(EMouseCaptureMode::CaptureDuringMouseDown);
+                    FSlateApplication::Get().SetUserFocus(0, AsShared());
+                    FSlateApplication::Get().SetKeyboardFocus(AsShared());
+
                     m_isVisible = true;
                     FSlateApplication::Get().SetKeyboardFocus(AsShared());
 

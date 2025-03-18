@@ -8,4 +8,5 @@ THIRD_PARTY_INCLUDES_START
 //#define BOOST_NO_EXCEPTIONS 1
 //#define BOOST_NO_CXX11_NOEXCEPT 1
 #include <boost/signals2/signal.hpp>
+#include <boost/signals2/shared_connection_block.hpp>
 #pragma pop_macro("check")

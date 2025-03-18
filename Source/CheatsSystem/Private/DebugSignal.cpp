@@ -26,6 +26,12 @@ namespace dbg
 		result.m_data->connection = std::move(conn);
 		return std::move(result);
 	}
+	
+	void broadcast(const signal& i_signal)
+	{
+		i_signal.m_data->signal();
+	}
+
 
 	signal::~signal()
 	{
