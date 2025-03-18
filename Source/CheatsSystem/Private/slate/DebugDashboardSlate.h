@@ -20,7 +20,6 @@ namespace dbg
 			SLATE_BEGIN_ARGS(DebugDashboardSlate) {}
 			SLATE_END_ARGS();
 
-			static FSlateFontInfo s_textStyle;
 
 			void Construct(const FArguments& i_inArgs);
 			DebugDashboardSlate();
@@ -35,6 +34,7 @@ namespace dbg
 			bool IsVisible() const;
 
 		private:
+			FSlateFontInfo m_textStyle;
 			void Initialize();
 
 			void OnVarRegistered(std::reference_wrapper<detail::var> i_var);

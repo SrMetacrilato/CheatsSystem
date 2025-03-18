@@ -9,7 +9,6 @@ namespace dbg
 {
     namespace slate
     {
-        FSlateFontInfo DebugDashboardSlate::s_textStyle;
 
         
 
@@ -21,8 +20,8 @@ namespace dbg
             const FMargin ContentPadding = FMargin(60.f, 60.f);
 
 
-            s_textStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
-            s_textStyle.Size = 24.0f;
+            m_textStyle = FCoreStyle::Get().GetFontStyle("EmbossedText");
+            m_textStyle.Size = 24.0f;
 
             m_widgetContainer = SNew(SVerticalBox);
 
@@ -89,7 +88,7 @@ namespace dbg
         void DebugDashboardSlate::OnVarRegistered(std::reference_wrapper<detail::var> i_var)
         {
             TSharedRef<DebugSlateWidget> holder = i_var.get().make_slate_widget();
-            TSharedRef<SWidget> slateWidget = holder->Init();
+            TSharedRef<SWidget> slateWidget = holder->Init(m_textStyle);
             std::filesystem::path name = dbg::get_path(i_var);
 
             m_allDebugOptions.Emplace(std::move(holder));
@@ -116,7 +115,7 @@ namespace dbg
                     auto it = m_widgetByPath.find(current.string());
                     if (it == m_widgetByPath.end())
                     {
-                        parent = SNew(STextBlock).Text(FText::FromString(pathElement.c_str())).Font(s_textStyle);
+                        parent = SNew(STextBlock).Text(FText::FromString(pathElement.c_str())).Font(m_textStyle);
                         m_widgetByPath.emplace(current.string(), parent.ToSharedRef());
                     }
                     else

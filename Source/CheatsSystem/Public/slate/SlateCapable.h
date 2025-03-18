@@ -1,11 +1,12 @@
 #pragma once
 
+struct FSlateFontInfo;
 namespace dbg
 {
 	template<typename T>
 	class var;
 	class signal;
-	
+
 	class CHEATSSYSTEM_API DebugSlateWidget
 	{
 	public:
@@ -14,7 +15,7 @@ namespace dbg
 
 		//Required by some UI systems, such as Unreal's Slate. Will be called once, immediately after construction, and never again.
 		//afterwards, widget will be accessed.
-		virtual TSharedRef<SWidget> Init() = 0;
+		virtual TSharedRef<SWidget> Init(const FSlateFontInfo& i_parentWindowFontInfo) = 0;
 
 	};
 

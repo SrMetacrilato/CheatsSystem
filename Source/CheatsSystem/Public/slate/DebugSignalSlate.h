@@ -12,7 +12,7 @@ namespace dbg
         public:
             DebugSlateWidgetButton(dbg::signal& i_var);
 
-            TSharedRef<SWidget> Init() override;
+            TSharedRef<SWidget> Init(const FSlateFontInfo& i_parentWindowFontInfo) override;
 
         private:
             TSharedPtr<SButton> button;
