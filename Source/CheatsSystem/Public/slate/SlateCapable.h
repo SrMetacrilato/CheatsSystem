@@ -22,11 +22,9 @@ namespace dbg
 
 	namespace slate
 	{
-		
-		
-		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(var<bool>& i_var);
-		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(var<float>& i_var);
-		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(signal& i_var);
+
+		template<typename T>
+		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(T& i_var); //unimplemented
 
 		class slate_capable
 		{

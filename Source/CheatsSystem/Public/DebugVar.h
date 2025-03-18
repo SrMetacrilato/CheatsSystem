@@ -1,81 +1,26 @@
 #pragma once
-#include <filesystem>
-#include <xutility>
-
-#include "SlateCapable.h"
-
-namespace boost
-{
-	namespace signals2
-	{
-		class scoped_connection;
-	}
-}
+#include "DetailVar.h"
 
 namespace dbg
 {
 	
 
-	template<typename T>
-	struct properties 
-	{
-	};
+	
 
-	template<>
-	struct properties<bool>
-	{
-		
-	};
+	
 
-	template<>
-	struct properties<float>
-	{
-		properties() = default;
-		properties(float i_min, float i_max)
-			: min(i_min)
-			, max(i_max)
-		{ }
-
-		float min = -999.f;
-		float max = 999.f;
-		int minFractionDigits = 2;
-		int maxFractionDigits = 2;
-	};
 
 	//FWD declarations
+	
 	template<typename T> class var;
-	namespace detail { class var; }
 	
 	template<typename T> dbg::var<T> make_var(T initialValue, std::filesystem::path i_name, properties<T> i_properties);
 	template<typename T> T value(const dbg::var<T>&);
 	template<typename T> void set_value(dbg::var<T>&, T i_value);
 	template<typename T> properties<T> get_properties(const dbg::var<T>&);
 
-	std::filesystem::path get_path(const detail::var&);
 
 	
-	namespace detail
-	{
-		class CHEATSSYSTEM_API var: virtual public slate::slate_capable
-		{
-		public:
-
-			virtual ~var();
-			
-
-		protected:
-			var(std::filesystem::path i_path);
-			void NotifyChanged();
-
-		private:
-			friend std::filesystem::path dbg::get_path(const detail::var&);
-			friend std::unique_ptr<boost::signals2::scoped_connection> connectOnValueChanged(const detail::var&, std::function<void()>); //unique_ptr so it is not dependant on boost
-			struct Data;
-
-			std::filesystem::path m_path;
-			std::unique_ptr<Data> m_data;
-		};
-	}
 
 	#pragma warning( push )
 	#pragma warning( disable : 4250) //Domination here is acceptable. var will NEVER implement the function
@@ -160,8 +105,5 @@ namespace dbg
 	{
 		return i_var.m_properties;
 	}
-
-
-	//template class CHEATSSYSTEM_API var<bool>;
-	//template class CHEATSSYSTEM_API var<float>;
 }
+

@@ -10,6 +10,11 @@ namespace dbg
 	CHEATSSYSTEM_API connection connect(const signal& i_signal, std::function<void()> i_callback);
 	CHEATSSYSTEM_API void broadcast(const signal& i_signal);
 
+	namespace slate
+	{
+		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(signal& i_var);
+	}
+
 	class CHEATSSYSTEM_API connection
 	{
 	public:

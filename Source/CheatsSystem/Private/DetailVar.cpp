@@ -1,4 +1,4 @@
-#include "DebugVar.h"
+#include "DetailVar.h"
 #include "DebugSystem.h"
 
 namespace dbg

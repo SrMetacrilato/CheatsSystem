@@ -1,7 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CheatsSystem.h"
-#include "DebugDashboardSlate.h"
+#include "slate/DebugDashboardSlate.h"
 
 #define LOCTEXT_NAMESPACE "FCheatsSystemModule"
 
