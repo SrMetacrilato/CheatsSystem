@@ -11,7 +11,7 @@ namespace dbg
 		{
 			struct Slider
 			{
-				Slider(float i_min, float i_max)
+				constexpr Slider(float i_min, float i_max)
 					: min(i_min)
 					, max(i_max)
 				{
@@ -49,9 +49,9 @@ namespace dbg
 
 	namespace slate
 	{
-		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget(var<float>& i_var);
+		TSharedRef<DebugSlateWidget> make_widget(var<float>& i_var);
 	}
 
-	template class CHEATSSYSTEM_API var<float>;
+	//template class CHEATSSYSTEM_API var<float>;
 
 }

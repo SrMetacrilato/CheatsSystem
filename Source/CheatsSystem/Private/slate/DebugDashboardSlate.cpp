@@ -59,10 +59,7 @@ namespace dbg
 
         }
 
-        void slate::DebugDashboardSlate::Tick(float DeltaTime)
-        {
-
-        }
+       
 
         bool DebugDashboardSlate::SupportsKeyboardFocus() const
         {
@@ -79,19 +76,19 @@ namespace dbg
             m_onVarRegisteredConnection = DebugSystem::GetInstance().onVarRegistered.connect(std::bind(&DebugDashboardSlate::OnVarRegistered, this, std::placeholders::_1));
             m_onVarUnregisteredConnection = DebugSystem::GetInstance().onVarUnregistered.connect(std::bind(&DebugDashboardSlate::OnVarUnregistered, this, std::placeholders::_1));
 
-            for (std::reference_wrapper<detail::var> var : DebugSystem::GetInstance().ListAllVars())
+            for (std::reference_wrapper<detail::variable> var : DebugSystem::GetInstance().ListAllVars())
             {
                 OnVarRegistered(var);
             }
         }
 
-        void DebugDashboardSlate::OnVarRegistered(std::reference_wrapper<detail::var> i_var)
+        void DebugDashboardSlate::OnVarRegistered(std::reference_wrapper<detail::variable> i_var)
         {
             TSharedRef<DebugSlateWidget> holder = i_var.get().make_slate_widget();
             TSharedRef<SWidget> slateWidget = holder->Init(m_textStyle);
             std::filesystem::path name = dbg::get_path(i_var);
 
-            m_allDebugOptions.Emplace(std::move(holder));
+            m_allDebugOptions.Emplace(slateWidget, std::move(holder));
             size_t i = 0;
             std::filesystem::path current;
             TSharedPtr<SWidget> parent;
@@ -104,6 +101,7 @@ namespace dbg
                     continue;
                 }
 
+                //current += "/";
                 current += pathElement;
                 std::string pathelementName = current.string();
                 if (pathElement == name.filename()) //This is the debug option name
@@ -142,7 +140,7 @@ namespace dbg
                 {
                     if (!m_streeStructure.Find(parentWidget.ToSharedRef()))
                     {
-                        m_streeStructure.Emplace(parent, { });
+                        m_streeStructure.Emplace(parentWidget.ToSharedRef(), { });
                     }
                     m_streeStructure[parentWidget.ToSharedRef()].Emplace(widget.first.c_str(), widget.second);
 
@@ -154,8 +152,29 @@ namespace dbg
             m_treeView->RequestTreeRefresh();
         }
 
-        void DebugDashboardSlate::OnVarUnregistered(std::reference_wrapper<detail::var> i_var)
+        void DebugDashboardSlate::OnVarUnregistered(std::reference_wrapper<detail::variable> i_var)
         {
+            std::filesystem::path path = get_path(i_var.get());
+            std::string name = path.string();
+            TSharedPtr<SWidget> widgetToRemove;
+            for (const auto& kv : m_allDebugOptions)
+            {
+                if (&kv.Value->variable.get() == &i_var.get())
+                {
+                    widgetToRemove = kv.Key;
+                    break;
+                }
+            }
+            if (!widgetToRemove)
+            {
+                return;
+            }
+
+            m_allDebugOptions.Remove(widgetToRemove.ToSharedRef());
+            RemoveWidget(widgetToRemove.ToSharedRef());
+            
+            m_treeView->RequestTreeRefresh();
+            
         }
 
         KeyShortcut Adapt(const FKeyEvent& InKeyEvent)
@@ -170,6 +189,7 @@ namespace dbg
             return shortcut;
 
         }
+
 
         bool DebugDashboardSlate::HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent)
         {
@@ -283,6 +303,44 @@ namespace dbg
             {
 
             }
+        }
+
+        void DebugDashboardSlate::RemoveWidget(TSharedRef<SWidget> i_widget)
+        {
+            m_treeNodes.Remove(i_widget);
+            for (const auto& itByPath : m_widgetByPath)
+            {
+                if (itByPath.second == i_widget)
+                {
+                    m_widgetByPath.erase(itByPath.first);
+                    break;
+                }
+            }
+
+            TSharedPtr<SWidget> parent = RemoveFromParent(i_widget);
+            if (parent && m_streeStructure[parent].Num() == 0)
+            {
+                RemoveWidget(parent.ToSharedRef());
+            }
+        }
+
+        TSharedPtr<SWidget> DebugDashboardSlate::RemoveFromParent(TSharedRef<SWidget> i_widget)
+        {
+            for (auto& kv : m_streeStructure)
+            {
+                TSharedPtr<SWidget> parent = kv.Key;
+                TSortedMap<FString, TSharedPtr<SWidget>>& subnodes = kv.Value;
+                for (auto& itsubNodes : subnodes)
+                {
+                    if (itsubNodes.Value == i_widget)
+                    {
+                        subnodes.Remove(itsubNodes.Key);
+                        return parent;
+                    }
+                }
+            }
+
+            return nullptr;
         }
 
         void DebugDashboardSlate::Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor)

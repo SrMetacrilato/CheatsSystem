@@ -9,7 +9,7 @@ namespace dbg
 
 	namespace detail
 	{
-		class var;
+		class variable;
 	}
 
 	class DebugSystem
@@ -21,13 +21,13 @@ namespace dbg
 		DebugSystem();
 		~DebugSystem();
 
-		void RegisterVariable(detail::var& i_var);
-		void UnregisterVariable(detail::var& i_var);
+		void RegisterVariable(detail::variable& i_var);
+		void UnregisterVariable(detail::variable& i_var);
 
-		boost::signals2::signal<void(detail::var& i_var)> onVarRegistered;
-		boost::signals2::signal<void(detail::var& i_var)> onVarUnregistered;
+		boost::signals2::signal<void(detail::variable& i_var)> onVarRegistered;
+		boost::signals2::signal<void(detail::variable& i_var)> onVarUnregistered;
 
-		std::vector<std::reference_wrapper<detail::var>> ListAllVars() const;
+		std::vector<std::reference_wrapper<detail::variable>> ListAllVars() const;
 
 		void HandleKeyPress(const KeyShortcut& i_shortcut);
 
@@ -36,6 +36,6 @@ namespace dbg
 		static std::unique_ptr<DebugSystem> s_debugSystem;
 		mutable std::mutex m_varListMutex;
 
-		std::vector<std::reference_wrapper<detail::var>> m_vars;
+		std::vector<std::reference_wrapper<detail::variable>> m_vars;
 	};
 }

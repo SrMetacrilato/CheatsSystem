@@ -3,24 +3,27 @@
 #include "slate/SlateCapable.h"
 #include "DebugSignal.h"
 
+class SButton;
+class SWidget;
+
 namespace dbg
 {
 	namespace slate
 	{
-        class DebugSlateWidgetButton : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetButton>
+        class CHEATSSYSTEM_API DebugSlateWidgetButton : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetButton>
         {
         public:
-            DebugSlateWidgetButton(dbg::signal& i_var);
+            DebugSlateWidgetButton(dbg::sig<void>& i_var);
 
             TSharedRef<SWidget> Init(const FSlateFontInfo& i_parentWindowFontInfo) override;
 
         private:
             TSharedPtr<SButton> button;
-            std::reference_wrapper<dbg::signal> m_var;
+            std::reference_wrapper<dbg::sig<void>> m_var;
         };
 
         template<>
-        inline TSharedRef<DebugSlateWidget> make_widget<signal>(signal& i_var)
+        inline TSharedRef<DebugSlateWidget> make_widget<sig<void>>(sig<void>& i_var)
         {
             return MakeShared<DebugSlateWidgetButton>(i_var);
         }

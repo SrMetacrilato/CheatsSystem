@@ -5,17 +5,30 @@
 
 #define LOCTEXT_NAMESPACE "FCheatsSystemModule"
 
+#if WITH_EDITOR
+//In editor, plugins are dynamically linked, therefore, this operatio is needed
+namespace boost {
+	void throw_exception(std::exception const& e) {
+		// Manejo de error personalizado (puedes hacer un log o un `check`)
+		UE_LOG(LogTemp, Error, TEXT("Boost exception: %s"), *FString(e.what()));
+	}
+}
+#endif
+
 void FCheatsSystemModule::StartupModule()
 {
+#if WITH_EDITOR
 	FEditorDelegates::BeginPIE.AddRaw(this, &FCheatsSystemModule::OnBeginPIE);
 	FEditorDelegates::EndPIE.AddRaw(this, &FCheatsSystemModule::OnEndPIE);
+#endif
 }
 
 void FCheatsSystemModule::ShutdownModule()
 {
+#if WITH_EDITOR
 	FEditorDelegates::BeginPIE.RemoveAll(this);
 	FEditorDelegates::EndPIE.RemoveAll(this);
-
+#endif
 	if (m_debugDashboard)
 	{
 		//FSlateApplication::Get().UnregisterInputPreProcessor(m_debugDashboard);

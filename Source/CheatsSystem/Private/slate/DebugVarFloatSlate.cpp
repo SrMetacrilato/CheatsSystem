@@ -14,7 +14,8 @@ namespace dbg
 
 
         DebugSlateWidgetSliderInput::DebugSlateWidgetSliderInput(dbg::var<float>& i_var, dbg::properties<float>::widget::Slider i_sliderProperties)
-            : m_var(i_var)
+            : DebugSlateWidget(i_var)
+            , m_var(i_var)
             , m_sliderProperties(std::move(i_sliderProperties))
         {
 
@@ -27,20 +28,21 @@ namespace dbg
 
         void DebugSlateWidgetSliderInput::OnVariableValueChanged() const
         {
+#if ENABLE_CHEATS
             float value = dbg::value(m_var.get());
             valueText->SetText(FText::AsNumber(value, &format));
             slider->SetValue(value);
+#endif
         }
 
         TSharedRef<SWidget> DebugSlateWidgetSliderInput::Init(const FSlateFontInfo& i_parentWindowFontInfo)
         {
-            m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetSliderInput::OnVariableValueChanged, this));
+            m_valueChangedConnection = connectOnValueChanged(m_var.get(), std::bind(&DebugSlateWidgetSliderInput::OnVariableValueChanged, this));
             std::filesystem::path name = get_path(m_var.get());
             properties<float> properties = get_properties(m_var.get());
             valueText = SNew(STextBlock).Font(i_parentWindowFontInfo);
             format.SetMinimumFractionalDigits(m_sliderProperties.minFractionDigits);
             format.SetMaximumFractionalDigits(m_sliderProperties.maxFractionDigits);
-            float value = dbg::value(m_var.get());
 
             slider = SNew(SSlider)
                 .OnValueChanged_Lambda([this](float i_value)
@@ -52,9 +54,11 @@ namespace dbg
                 .MinValue(m_sliderProperties.min)
                 .MaxValue(m_sliderProperties.max)
                 ;
-
+#if ENABLE_CHEATS
+            float value = dbg::value(m_var.get());
             slider->SetValue(value);
             valueText->SetText(FText::AsNumber(value, &format));
+#endif
 
             return SNew(SHorizontalBox)
 
@@ -70,21 +74,26 @@ namespace dbg
 
 
         DebugSlateWidgetFloatDisplay::DebugSlateWidgetFloatDisplay(dbg::var<float>& i_var, dbg::properties<float>::widget::Display i_displayProperties)
-            : m_var(i_var)
+            : DebugSlateWidget(i_var)
+            , m_var(i_var)
             , m_displayProperties(std::move(i_displayProperties))
         {
         }
 
         DebugSlateWidgetFloatDisplay::~DebugSlateWidgetFloatDisplay()
         {
+#if ENABLE_CHEATS
             float value = dbg::value(m_var.get());
             valueText->SetText(FText::AsNumber(value, &format));
+#endif
         }
 
         void DebugSlateWidgetFloatDisplay::OnVariableValueChanged()
         {
+#if ENABLE_CHEATS
             float value = dbg::value(m_var.get());
             valueText->SetText(FText::AsNumber(value, &format));
+#endif
         }
 
         TSharedRef<SWidget> DebugSlateWidgetFloatDisplay::Init(const FSlateFontInfo& i_parentWindowFontInfo)
@@ -92,15 +101,14 @@ namespace dbg
             format.SetMinimumFractionalDigits(m_displayProperties.minFractionDigits);
             format.SetMaximumFractionalDigits(m_displayProperties.maxFractionDigits);
 
-            m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetFloatDisplay::OnVariableValueChanged, this));
+            m_valueChangedConnection = connectOnValueChanged(m_var.get(), std::bind(&DebugSlateWidgetFloatDisplay::OnVariableValueChanged, this));
             std::filesystem::path name = get_path(m_var.get());
             properties<float> properties = get_properties(m_var.get());
             valueText = SNew(STextBlock).Font(i_parentWindowFontInfo);
-            
+#if ENABLE_CHEATS
             float value = dbg::value(m_var.get());
-
             valueText->SetText(FText::AsNumber(value, &format));
-
+#endif
             return SNew(SHorizontalBox)
 
                 + SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(name.filename().c_str())).Font(i_parentWindowFontInfo)]

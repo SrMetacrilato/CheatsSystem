@@ -9,7 +9,8 @@ namespace dbg
         ////////////////////////////////////////////////////////////////////////////////////////////////
 
         DebugSlateWidgetToggle::DebugSlateWidgetToggle(dbg::var<bool>& i_var)
-            : m_var(i_var)
+            : DebugSlateWidget(i_var)
+            , m_var(i_var)
         {
 
         }
@@ -24,18 +25,21 @@ namespace dbg
         }
         void DebugSlateWidgetToggle::OnVariableValueChanged()
         {
+#if ENABLE_CHEATS
             bool value = dbg::value(m_var.get());
             checkbox->SetIsChecked(value);
+#endif
         }
         TSharedRef<SWidget> DebugSlateWidgetToggle::Init(const FSlateFontInfo& i_parentWindowFontInfo)
         {
-            m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetToggle::OnVariableValueChanged, this));
+            m_valueChangedConnection = connectOnValueChanged(m_var.get(), std::bind(&DebugSlateWidgetToggle::OnVariableValueChanged, this));
             std::filesystem::path name = get_path(m_var.get());
-            bool value = dbg::value(m_var.get());
             checkbox = SNew(SCheckBox).OnCheckStateChanged(this, &DebugSlateWidgetToggle::OnStateChanged)
                 ;
+#if ENABLE_CHEATS
+            bool value = dbg::value(m_var.get());
             checkbox->SetIsChecked(value);
-
+#endif
             return SNew(SHorizontalBox)
 
                 + SHorizontalBox::Slot().AutoWidth()[SNew(STextBlock).Text(FText::FromString(name.filename().c_str())).Font(i_parentWindowFontInfo)]
@@ -50,7 +54,8 @@ namespace dbg
         ////////////////////////////////////////////////////////////////////////////////////////////////
 
         DebugSlateWidgetBoolDisplay::DebugSlateWidgetBoolDisplay(dbg::var<bool>& i_var)
-            : m_var(i_var)
+            : DebugSlateWidget(i_var)
+            , m_var(i_var)
         {
         }
 
@@ -60,13 +65,15 @@ namespace dbg
 
         void DebugSlateWidgetBoolDisplay::OnVariableValueChanged()
         {
+#if ENABLE_CHEATS
             bool value = dbg::value(m_var.get());
             valueText->SetText(value ? FText::FromString("TRUE") : FText::FromString("FALSE"));
+#endif
         }
 
         TSharedRef<SWidget> DebugSlateWidgetBoolDisplay::Init(const FSlateFontInfo& i_parentWindowFontInfo)
         {
-            m_valueChangedConnection = connectOnValueChanged(m_var, std::bind(&DebugSlateWidgetBoolDisplay::OnVariableValueChanged, this));
+            m_valueChangedConnection = connectOnValueChanged(m_var.get(), std::bind(&DebugSlateWidgetBoolDisplay::OnVariableValueChanged, this));
             std::filesystem::path name = get_path(m_var.get());
 
             valueText = SNew(STextBlock).Font(i_parentWindowFontInfo);

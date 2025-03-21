@@ -3,7 +3,13 @@
 #include "slate/SlateCapable.h"
 #include "DebugVarFloat.h"
 
+namespace boost::signals2
+{
+    class scoped_connection;
+}
+
 class SSlider;
+class STextBlock;
 
 namespace dbg
 {
@@ -13,7 +19,7 @@ namespace dbg
        
 
 
-        class DebugSlateWidgetSliderInput : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetSliderInput>
+        class CHEATSSYSTEM_API DebugSlateWidgetSliderInput : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetSliderInput>
         {
         public:
             DebugSlateWidgetSliderInput(dbg::var<float>& i_var, dbg::properties<float>::widget::Slider i_sliderProperties);
@@ -33,7 +39,7 @@ namespace dbg
             TSharedPtr<STextBlock> valueText;
         };
 
-        class DebugSlateWidgetFloatDisplay : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetFloatDisplay>
+        class CHEATSSYSTEM_API DebugSlateWidgetFloatDisplay : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetFloatDisplay>
         {
         public:
             DebugSlateWidgetFloatDisplay(dbg::var<float>& i_var, dbg::properties<float>::widget::Display i_displayProperties);

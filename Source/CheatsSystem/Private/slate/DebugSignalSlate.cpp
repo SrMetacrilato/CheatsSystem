@@ -5,8 +5,9 @@ namespace dbg
 {
 	namespace slate
 	{
-        DebugSlateWidgetButton::DebugSlateWidgetButton(dbg::signal& i_var)
-            : m_var(i_var)
+        DebugSlateWidgetButton::DebugSlateWidgetButton(dbg::sig<void>& i_var)
+            : DebugSlateWidget(i_var)
+            , m_var(i_var)
         {
 
         }
@@ -15,7 +16,7 @@ namespace dbg
         {
             std::filesystem::path name = get_path(m_var.get());
             button = SNew(SButton).OnPressed_Lambda([this]() {
-                dbg::broadcast(m_var);
+                dbg::broadcast(m_var.get());
                 })
                 [
                     SNew(STextBlock).Text(FText::FromString("Activate")).Font(i_parentWindowFontInfo)

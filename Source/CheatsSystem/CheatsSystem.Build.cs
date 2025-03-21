@@ -55,5 +55,8 @@ public class CheatsSystem : ModuleRules
 				// ... add any modules that your module loads dynamically here ...
 			}
 			);
-	}
+
+        PublicDefinitions.Add("BOOST_NO_EXCEPTIONS=1");
+        PublicDefinitions.Add("BOOST_NO_RTTI=1");
+    }
 }

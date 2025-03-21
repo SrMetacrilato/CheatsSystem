@@ -35,8 +35,8 @@ namespace dbg
 	namespace slate
 	{
 		template<>
-		CHEATSSYSTEM_API TSharedRef<DebugSlateWidget> make_widget<var<bool>>(var<bool>& i_var);
+		TSharedRef<DebugSlateWidget> make_widget<var<bool>>(var<bool>& i_var);
 	}
 
-	template class CHEATSSYSTEM_API var<bool>;
+	//template class CHEATSSYSTEM_API var<bool>;
 }

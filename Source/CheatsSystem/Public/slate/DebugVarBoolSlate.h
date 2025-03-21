@@ -3,6 +3,12 @@
 #include "slate/SlateCapable.h"
 #include "DebugVarBool.h"
 class SCheckBox;
+class STextBlock;
+
+namespace boost::signals2
+{
+    class scoped_connection;
+}
 
 namespace dbg
 {
@@ -14,7 +20,7 @@ namespace dbg
 
         //A la API, amb fwd declarations
         //Leak per cicle de shareds??
-        class DebugSlateWidgetToggle : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetToggle>
+        class CHEATSSYSTEM_API DebugSlateWidgetToggle : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetToggle>
         {
         public:
             DebugSlateWidgetToggle(dbg::var<bool>& i_var);
@@ -34,7 +40,7 @@ namespace dbg
             TSharedPtr<SCheckBox> checkbox;
         };
 
-        class DebugSlateWidgetBoolDisplay : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetBoolDisplay>
+        class CHEATSSYSTEM_API DebugSlateWidgetBoolDisplay : public DebugSlateWidget, public TSharedFromThis<DebugSlateWidgetBoolDisplay>
         {
         public:
             DebugSlateWidgetBoolDisplay(dbg::var<bool>& i_var);

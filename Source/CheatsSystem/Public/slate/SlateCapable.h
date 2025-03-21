@@ -7,6 +7,11 @@ namespace dbg
 	class var;
 	class signal;
 
+	namespace detail
+	{
+		class variable;
+	}
+
 	class CHEATSSYSTEM_API DebugSlateWidget
 	{
 	public:
@@ -16,6 +21,14 @@ namespace dbg
 		//Required by some UI systems, such as Unreal's Slate. Will be called once, immediately after construction, and never again.
 		//afterwards, widget will be accessed.
 		virtual TSharedRef<SWidget> Init(const FSlateFontInfo& i_parentWindowFontInfo) = 0;
+
+		std::reference_wrapper<detail::variable> variable;
+	protected:
+		inline DebugSlateWidget(detail::variable& i_var)
+			: variable(i_var)
+		{
+
+		}
 
 	};
 

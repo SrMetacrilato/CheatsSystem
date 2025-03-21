@@ -8,7 +8,7 @@ namespace dbg
 {
 	namespace detail
 	{
-		class var;
+		class variable;
 	}
 
 	namespace slate
@@ -25,7 +25,7 @@ namespace dbg
 			DebugDashboardSlate();
 			~DebugDashboardSlate();
 
-			void Tick(float DeltaTime);
+			
 			bool SupportsKeyboardFocus() const override;
 
 			//Not to be changed, just by Module itself
@@ -37,14 +37,17 @@ namespace dbg
 			FSlateFontInfo m_textStyle;
 			void Initialize();
 
-			void OnVarRegistered(std::reference_wrapper<detail::var> i_var);
-			void OnVarUnregistered(std::reference_wrapper<detail::var> i_var);
+			void OnVarRegistered(std::reference_wrapper<detail::variable> i_var);
+			void OnVarUnregistered(std::reference_wrapper<detail::variable> i_var);
 
 			bool HandleKeyDownEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override;
 			bool HandleKeyUpEvent(FSlateApplication& SlateApp, const FKeyEvent& InKeyEvent) override { return m_isVisible; }
 
 			TSharedRef<ITableRow> OnGenerateListRow(TSharedPtr<SWidget> Item, const TSharedRef<STableViewBase>& OwnerTable);
 			void OnGetChildren(TSharedPtr<SWidget> Item, TArray<TSharedPtr<SWidget>>& OutChildren);
+
+			void RemoveWidget(TSharedRef<SWidget> i_widget);
+			TSharedPtr<SWidget> RemoveFromParent(TSharedRef<SWidget> i_widget);
 
 			void Tick(const float DeltaTime, FSlateApplication& SlateApp, TSharedRef<ICursor> Cursor) override;
 			bool m_isVisible = false;
@@ -57,7 +60,7 @@ namespace dbg
 			TMap<TSharedPtr<SWidget>, TSortedMap<FString, TSharedPtr<SWidget>>> m_streeStructure;
 			std::map<std::string, TSharedRef<SWidget>> m_widgetByPath;
 			//std::vector<std::weak_ptr<DebugWidgetEx>> m_activeWidgets;
-			TSet<TSharedRef<DebugSlateWidget>> m_allDebugOptions;
+			TMap<TSharedRef<SWidget>, TSharedRef<DebugSlateWidget>> m_allDebugOptions;
 
 			struct InputState
 			{
